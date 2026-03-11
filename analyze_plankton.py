@@ -113,8 +113,9 @@ def fetch_trades():
 
 def fetch_positions():
     print("\n[2/3] Fetching closed positions…")
-    url = f"{DATA_API}/positions"
-    positions = paginate(url, params={"user": WALLET, "sizeThreshold": "0"}, limit=500)
+    # wallet goes in the path, not as a query param — query `user=` is ignored by the API
+    url = f"{DATA_API}/positions/{WALLET}"
+    positions = paginate(url, params={"sizeThreshold": "0"}, limit=500)
     print(f"  Total positions fetched: {len(positions)}")
     return positions
 
