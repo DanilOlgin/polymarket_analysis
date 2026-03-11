@@ -92,30 +92,16 @@ def classify(title: str) -> str:
 
 def fetch_trades():
     print("\n[1/3] Fetching trade history…")
-    url = f"{DATA_API}/trades"
-    trades = paginate(url, params={"maker": WALLET}, limit=500)
-
-    # also try as taker
-    taker_trades = paginate(url, params={"taker": WALLET}, limit=500)
-
-    # deduplicate by transaction hash if present
-    seen = set()
-    combined = []
-    for t in trades + taker_trades:
-        key = t.get("transactionHash") or t.get("id") or json.dumps(t, sort_keys=True)
-        if key not in seen:
-            seen.add(key)
-            combined.append(t)
-
-    print(f"  Total unique trades fetched: {len(combined)}")
-    return combined
+    # /trades?user= correctly filters by wallet; maker= and taker= are ignored by the API
+    trades = paginate(f"{DATA_API}/trades", params={"user": WALLET}, limit=500)
+    print(f"  Total unique trades fetched: {len(trades)}")
+    return trades
 
 
 def fetch_positions():
-    print("\n[2/3] Fetching closed positions…")
-    # wallet goes in the path, not as a query param — query `user=` is ignored by the API
-    url = f"{DATA_API}/positions/{WALLET}"
-    positions = paginate(url, params={"sizeThreshold": "0"}, limit=500)
+    print("\n[2/3] Fetching open positions…")
+    # user= query param correctly filters by wallet on this endpoint
+    positions = paginate(f"{DATA_API}/positions", params={"user": WALLET, "sizeThreshold": "0"}, limit=500)
     print(f"  Total positions fetched: {len(positions)}")
     return positions
 
